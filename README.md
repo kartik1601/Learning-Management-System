@@ -40,4 +40,6 @@ The login system:-
   - If the user is completes all the steps correctly, then the user is authenticated and activated, and logged in to the system.
 
 - #### Security Features:
-  - 
+  - **Password Hashing by [BCrypt](https://www.npmjs.com/package/bcrypt#nodebcryptjs)**: The BCrypt turns the inputed password into a random hash value. It uses an One-way Hash function, which means once the password has been hashed, it cannot be retrieved into it's original form. Apart from this, Bcrypt also hashes the password everytime the user login to the system and checks it with the version stored in the system's memory.
+  - **Updating Access Token periodically**: After every 5 minutes the access token value expires, also expiring the user's current session. User have to login again to access the system. In this security system the user's access token refreshes every 5 minutes, so that it cannot be hacked easily. With the frontend the access token is refreshed in the background, without interrupting the user's session. While the refresh token is refreshed every 3 days.
+  - **Caching with [Redis](https://www.npmjs.com/package/redis)**: Every user's data that is currently logged in to the system is stored in the cache with the help of Redis. Once every 7 days, the cache memory is cleared to boost performance as well as to maintain security for inactive user.
