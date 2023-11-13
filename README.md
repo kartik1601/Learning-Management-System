@@ -7,15 +7,15 @@
   - Frameworks: [ExpressJs](https://www.npmjs.com/package/express), [JSONWebToken](https://www.npmjs.com/package/jsonwebtoken), [Redis](https://www.npmjs.com/package/redis), [Mongoose](https://www.npmjs.com/package/mongoose)
   - Mailing: HTML, CSS, [EJS](https://www.npmjs.com/package/ejs)
   - Password Hashing: [BCrypt](https://www.npmjs.com/package/bcrypt#nodebcryptjs)
-  - Database: MongoDB
-  - Route Testing: POSTMAN
-  - Data Caching: Redis
-  - Cloud Data Management: Cloudinary
+  - Database: [MongoDB](https://www.mongodb.com/)
+  - Route Testing: [POSTMAN](https://www.postman.com/)
+  - Data Caching: [Upstash](https://upstash.com/)
+  - Cloud Data Management: [Cloudinary](https://cloudinary.com/)
 
 ### Table of Contents
   1. [Authentication System](https://github.com/kartik1601/Learning-Management-System/edit/main/README.md#authentication-system)
   2. [Error Handling](https://github.com/kartik1601/Learning-Management-System/edit/main/README.md#error-handling)
-  3. [User Model and Services]()
+  3. [User Model and Services](https://github.com/kartik1601/Learning-Management-System/edit/main/README.md#user-model-and-services)
   4. [Course Model and Services]()
   5. [Order and Layout System]()
   6. [Notifications and Mailing System]()
@@ -24,7 +24,7 @@
   9. [Route testing with POSTMAN]()
 
 ##
-## Authentication System
+## AUTHENTICATION SYSTEM
 The login system:-
   1. Via Email and Password
   2. Via authenticated Google account (Social-Authentication system)
@@ -46,8 +46,60 @@ The login system:-
   - **Caching with [Redis](https://www.npmjs.com/package/redis)**: Every user's data that is currently logged in to the system is stored in the cache with the help of Redis. Once every 7 days, the cache memory is cleared to boost performance as well as to maintain security for inactive users.
 
 ##
-## Error Handling
-### Status Code - This property stores the HTTP status code associated with the error.
-### Message - This property displays the custom information, provided to the user, associated with the error.
-The following types of Errors are generated throughout the system:
-  - #### JSON WEB TOKEN EXPIRED: Status-Code:400 , Message:"Json web token has expired, try again!"
+## ERROR HANDLING
+### `Status Code` - This property stores the HTTP status code associated with the error.
+### `Message` - This property displays the custom information, provided to the user, associated with the error.
+The following common types of Errors are generated throughout the system:
+  - #### JSON WEB TOKEN EXPIRED: Status-Code:`400` , Message:"Json web token has expired, try again!"
+  - #### USER SESSION EXPIRED: Status-Code:`400` , Message:"Please login to access this resource!"
+  - #### UPDATING USER EMAIL-ID TO EXISTING EMAIL-ID: Status-Code:`400` , Message:"Email already exist"
+  - #### USER-ID (_id) MISMATCH: Status-Code:`404` , Message:"User not found!"
+  - #### ACCESSING UNPURCHASED COURSES: Status-Code:`500` , Message:"User is not eligible to access this course!"
+  - #### ADDING QUESTIONS/ANSWERS/REPLIES ERRORS: Status-Code:`400` , Message:"Invalid Content Id!"
+  - #### COURSE/QUESTION/ANSWER/REPLY NON-EXISTING: Status-Code:`500` , Message:"Course does not exists!" or "Question not found!"
+
+##
+## USER MODEL AND SERVICES
+
+## User Database Model
+### Schema
+The `IUser` interface defines the structure of a user document in the MongoDB database. It includes the following fields:
+
+- **name:** The user's name.
+- **email:** The user's email address, validated using a regular expression.
+- **password:** The user's password, hashed using [BCrypt](https://www.npmjs.com/package/bcrypt#nodebcryptjs) for security.
+- **avatar:** User's public avatar or profile picture that is uploaded with the help of [Cloudinary](https://cloudinary.com/).
+- **role:** The user's role, with a default value of "user". "admin" or "moderator" are examples of other roles.
+- **isVerified:** Indicating whether the user's email is verified, with a default value of `false`.
+- **courses:** Courses that user have purchased, each containing a `courseId` string.
+
+### Password Hashing
+There is a pre-save hook that hashes the user's password using [BCrypt](https://www.npmjs.com/package/bcrypt#nodebcryptjs) before saving it to the database.
+
+### Methods
+- **comparePassword:** A method that compares the entered password with the stored hashed password to verify user login credentials.
+- **SignAccessToken:** A method that signs and returns an access token using the user's ID as the payload, valid for 5 minutes.
+- **SignRefreshToken:** A method that signs and returns a refresh token using the user's ID as the payload, valid for 3 days.
+
+### Model
+The `userModel` variable is an instance of the `Model<IUser>` class provided by Mongoose, representing the "User" collection or folder in the MongoDB database.
+
+## User Services
+
+### `getUserById` Service
+- **Description:** Retrieves a user by their ID from the Redis cache and sends the user information in the response.
+- **Parameters:**
+  - `id:` The user ID.
+  - `res:` The Express response object.
+
+### `getAllUsersService` Service
+- **Description:** Retrieves all users from the MongoDB database, sorted by creation date, and sends the user information in the response.
+- **Parameters:**
+  - `res:` The Express response object.
+
+### `updateUserRoleService` Service
+- **Description:** Updates the role of a user in the MongoDB database and sends the updated user information in the response.
+- **Parameters:**
+  - `res:` The Express response object.
+  - `id:` The user ID.
+  - `role:` The new role to be assigned.
