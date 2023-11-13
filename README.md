@@ -13,9 +13,9 @@
   - Cloud Data Management: [Cloudinary](https://cloudinary.com/)
 
 ### Table of Contents
-  1. [Authentication System](https://github.com/kartik1601/Learning-Management-System/edit/main/README.md#authentication-system)
-  2. [Error Handling](https://github.com/kartik1601/Learning-Management-System/edit/main/README.md#error-handling)
-  3. [User Model and Services](https://github.com/kartik1601/Learning-Management-System/edit/main/README.md#user-model-and-services)
+  1. [Authentication System](https://github.com/kartik1601/Learning-Management-System/tree/main#authentication-system)
+  2. [Error Handling](https://github.com/kartik1601/Learning-Management-System/tree/main#error-handling)
+  3. [User Model and Services](https://github.com/kartik1601/Learning-Management-System/tree/main#user-model-and-services)
   4. [Course Model and Services]()
   5. [Order and Layout System]()
   6. [Notifications and Mailing System]()
@@ -103,3 +103,35 @@ The `userModel` variable is an instance of the `Model<IUser>` class provided by 
   - `res:` The Express response object.
   - `id:` The user ID.
   - `role:` The new role to be assigned.
+
+##
+## COURSE MODEL AND SERVICES
+
+## Course Database Model
+
+### Schemas
+- `IComment`: Represents a comment on a course, with a user, a question, and optional question replies.
+- `IReview`: Represents a review of a course, with a user, a rating, a comment, and optional comment replies.
+- `ILink`: Represents a link associated with a course, with a title and a URL.
+- `ICourseData`: Represents additional data associated with a course, including a title, description, video details, links, suggestions, and questions.
+- `ICourse`: Represents the main Course document, including name, description, price, thumbnail, tags, level, demo URL, benefits, prerequisites, reviews, course data, ratings, and purchase count.
+
+### Model Creation
+- The model is created using Mongoose's `Schema` and `Model` classes.
+- Sub-schemas (`linkSchema`, `commentSchema`, `reviewSchema`, `courserDataSchema`) are defined using their respective interfaces and attached to the main course schema.
+
+### Fields
+- Various fields such as `name`, `description`, `price`, `tags`, `level`, `demoUrl`, `benefits`, `prerequisites`, `reviews`, `courseData`, `ratings`, and `purchased` are defined based on the respective interfaces.
+
+## Course Services
+
+### `createCourse` Service
+- **Description:** Creates a new course and returns it in the response.
+- **Parameters:**
+  - `data:` Object containing course data.
+  - `res:` Express response object.
+
+### `getAllCoursesService` Service
+- **Description:** Retrieves all courses from the MongoDB database, sorted by creation date, and sends the course information in the response.
+- **Parameters:**
+  - `res:` Express response object.
