@@ -7,6 +7,7 @@
   - Frameworks: [ExpressJs](https://www.npmjs.com/package/express), [JSONWebToken](https://www.npmjs.com/package/jsonwebtoken), [Redis](https://www.npmjs.com/package/redis), [Mongoose](https://www.npmjs.com/package/mongoose)
   - Mailing: HTML, CSS, [EJS](https://www.npmjs.com/package/ejs)
   - Password Hashing: [BCrypt](https://www.npmjs.com/package/bcrypt#nodebcryptjs)
+  - Scheduling Jobs: [Cron](https://www.npmjs.com/package/cron)
   - Database: [MongoDB](https://www.mongodb.com/)
   - Route Testing: [POSTMAN](https://www.postman.com/)
   - Data Caching: [Upstash](https://upstash.com/)
@@ -135,3 +136,118 @@ The `userModel` variable is an instance of the `Model<IUser>` class provided by 
 - **Description:** Retrieves all courses from the MongoDB database, sorted by creation date, and sends the course information in the response.
 - **Parameters:**
   - `res:` Express response object.
+
+##
+## ORDER SYSTEM
+## Order Database Model
+
+### Schema
+- `IOrder`: Represents an order document with courseId, userId, and payment_info.
+- `orderSchema`: Defines the schema for the Order model, including courseId, userId, and payment_info.
+
+### Model Creation
+- `OrderModel`: Represents the Mongoose model for the "Order" collection, created using the `Model<IOrder>` class.
+
+## Order Services
+
+### `newOrder` Service
+- **Description:** Creates a new order and returns it in the response.
+- **Parameters:**
+  - `data:` Object containing order data.
+  - `next:` Next function.
+  - `res:` Express response object.
+
+### `getAllOrdersService` Service
+- **Description:** Retrieves all orders from the MongoDB database, sorted by creation date, and sends the order information in the response.
+- **Parameters:**
+  - `res:` Express response object.
+
+## Order Controller
+
+### `createOrder` Controller
+- **Description:** Creates a new order for a user and sends an order confirmation email.
+- **Parameters:**
+  - `req:` Express request object.
+  - `res:` Express response object.
+  - `next:` Next function.
+
+### `getAllOrders` Controller
+- **Description:** Retrieves all orders for an admin.
+- **Parameters:**
+  - `req:` Express request object.
+  - `res:` Express response object.
+  - `next:` Next function.
+
+## Order Controller Explanation
+
+- **createOrder Controller:**
+  - Fetches the `courseId` and `payment_info` from the request body.
+  - Checks if the user has already purchased the course; if yes, returns an error.
+  - Fetches the course based on the `courseId`.
+  - Creates an order data object with `courseId` and `userId`.
+  - Sends an order confirmation email to the user using [EJS](https://www.npmjs.com/package/ejs) template rendering and the `sendMail` utility.
+  - Updates the user's courses and saves the user.
+  - Creates a notification for the user about the new order.
+  - Increments the `purchased` count for the course and saves the course.
+  - Calls the `newOrder` service to create the order document in the database.
+
+- **getAllOrders Controller:**
+  - Calls the `getAllOrdersService` to retrieve all orders and sends the response.
+
+##
+## NOTIFICATIONS AND MAILING SYSTEM
+## Notification Database Model
+
+### Schema
+- `INotification`: Represents a notification document with title, message, status, and userId.
+- `notificationSchema`: Defines the schema for the Notification model, including title, message, status, and userId.
+
+### Model Creation
+- `NotificationModel`: Represents the Mongoose model for the "Notification" collection, created using the `Model<INotification>` class.
+
+## Notification Controller
+
+### `getNotifications` Controller
+- **Description:** Retrieves all notifications (for admin only) and sends the notification information in the response.
+- **Parameters:**
+  - `req:` Express request object.
+  - `res:` Express response object.
+  - `next:` Next function.
+
+### `updateNotification` Controller
+- **Description:** Updates the status of a notification to "read" and sends the updated notifications in the response.
+- **Parameters:**
+  - `req:` Express request object.
+  - `res:` Express response object.
+  - `next:` Next function.
+
+### Delete Read Notifications ([Cron](https://www.npmjs.com/package/cron) Job)
+- **Description:** Deletes read notifications older than 30 days using a cron job.
+- **Cron Schedule:** Runs daily at midnight.
+
+## Mailing Templates
+### 1. Activation Email Template
+
+- **Purpose:** Sent to users for account activation.
+- **Key Features:**
+  - Activation code included.
+  - Code expiration information.
+  - Contact information in the footer.
+
+### 2. New Reply Notification Email Template
+
+- **Purpose:** Notifies users of a new reply to their question.
+- **Key Features:**
+  - Personalized greeting.
+  - Details about the new reply.
+  - Call-to-action to log in and view the reply.
+  - Contact information in the footer.
+
+### 3. Order Confirmation Email Template
+
+- **Purpose:** Sent to users to confirm their e-learning course order.
+- **Key Features:**
+  - Order details, including order number and date.
+  - Itemized list of the ordered course.
+  - Subtotal and total cost information.
+  - Contact information in the footer.
