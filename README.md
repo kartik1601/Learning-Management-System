@@ -251,3 +251,294 @@ The `userModel` variable is an instance of the `Model<IUser>` class provided by 
   - Itemized list of the ordered course.
   - Subtotal and total cost information.
   - Contact information in the footer.
+
+##
+## ANALYTICS SYSTEM FOR ADMIN
+### Analytics Generator
+
+- **Function:** `generateLast12MonthsData`
+  - **Purpose:** Generates analytics data for the last 12 months for Users signed up, Courses purchased and Orders maintained.
+  - **Parameters:**
+    - `model`: A Mongoose model for which analytics data needs to be generated.
+  - **Returns:**
+    - An object containing an array of `MonthData` objects representing the count of documents for each month over the last 12 months.
+
+### Analytics Controller
+
+#### 1. Users Analytics
+
+- **Purpose:** Provides User data analytics for the last 12 months to admin.
+- **Steps:**
+  1. Calls `generateLast12MonthsData` for the `userModel`.
+  2. Sends the generated analytics data as a response.
+
+#### 2. Courses Analytics
+
+- **Purpose:** Provides course data analytics for the last 12 months to admin.
+- **Steps:**
+  1. Calls `generateLast12MonthsData` for the `CourseModel`.
+  2. Sends the generated analytics data as a response.
+
+#### 3. Orders Analytics
+
+- **Purpose:** Provides order data analytics for the last 12 months to admin.
+- **Steps:**
+  1. Calls `generateLast12MonthsData` for the `OrderModel`.
+  2. Sends the generated analytics data as a response.
+
+### General Considerations:
+
+- **Error Handling:** Errors are appropriately caught and handled using the `CatchAsyncError` middleware.
+
+- **Modularity:** The use of a separate utility function (`generateLast12MonthsData`) enhances modularity and code readability.
+
+- **Async/Await:** The use of `async/await` ensures proper handling of asynchronous operations.
+
+##
+## ADVANCED CACHING SYSTEM
+### [Redis](https://www.npmjs.com/package/redis) Caching with [Upstash](https://upstash.com/)
+
+[Redis](https://www.npmjs.com/package/redis) is an open-source, in-memory data structure store that can be used as a cache, message broker, and more. [Upstash](https://upstash.com/) is a Redis hosting service that provides a Redis server in the cloud, making it easy to integrate Redis into your applications.
+
+#### Key Benefits of Redis Caching:
+
+1. **In-Memory Storage:** Redis stores data in memory, making it incredibly fast for read-heavy operations.
+
+2. **Key-Value Store:** Data is stored as key-value pairs, allowing for efficient retrieval.
+
+3. **Expiration:** You can set expiration times for keys, making Redis suitable for caching.
+
+4. **Data Structures:** Redis supports various data structures like strings, hashes, lists, sets, and more.
+
+#### How Caching Works in the Provided Code:
+
+##### 1. Redis Configuration:
+
+The code checks if there's a `REDIS_URL` in the environment variables. If present, it creates a new Redis client using the provided URL. If not, it throws an error, indicating a failed Redis connection.
+
+```
+const redisClient = () => {
+    if(process.env.REDIS_URL){
+        console.log(`Redis connected`);
+        return process.env.REDIS_URL;
+    }
+    throw new Error('Redis connection failed!');
+};
+```
+
+##### 2. Creating a Redis Client Instance:
+
+An instance of the Redis client is created using the `redisClient` function. This instance (`redis`) can now be used to interact with the Redis server.
+
+```
+export const redis = new Redis(redisClient());
+```
+
+##### 3. Caching Data in Controllers:
+
+In each controller (`user.controller`, `course.controller`, `order.controller`), the code uses the `redis` instance to set data with a specified key and expiration time.
+
+```
+await redis.set(user._id, JSON.stringify(user), "EX", 604800);
+```
+
+In the above code example, it's setting the user data with the key being the user's ID and an expiration time of 604800 seconds (7 days).
+
+#### Considerations:
+
+- **Key Naming:** Using meaningful keys helps organize and retrieve cached data efficiently.
+- **Expiration Time:** Setting an appropriate expiration time balances the freshness of the data and the performance gains from caching.
+- **Cache Invalidation:** When relevant data is updated or deleted, the corresponding cache should be invalidated to avoid serving outdated information.
+- **Monitoring:** Monitoring Redis usage and performance is essential for optimizing cache utilization.
+
+##
+## ROUTE TESTING SYSTEM
+### [Postman](https://www.postman.com/) Service
+
+[Postman](https://www.postman.com/) is a widely used API development and testing tool that simplifies the process of creating, testing, and managing APIs. [Here](https://learning.postman.com/docs/introduction/overview/) is the documentation for testing the APIs implemented in the given Express.js application. Below are the explanation of the various routes used for the application:
+
+### User Router
+
+1. **Registration**
+   - **Endpoint:** `POST /registration`
+   - **Description:** Register a new user.
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/registration` with the required parameters (e.g., username, email, password).
+
+2. **Activate User**
+   - **Endpoint:** `POST /activate-user`
+   - **Description:** Activate a user account.
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/activate-user` with the required parameters (e.g., activation code).
+
+3. **Login**
+   - **Endpoint:** `POST /login`
+   - **Description:** Log in a user.
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/login` with the required parameters (e.g., email, password).
+
+4. **Logout**
+   - **Endpoint:** `GET /logout`
+   - **Description:** Log out the currently authenticated user.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/logout` with the required authorization header.
+
+5. **Refresh Token**
+   - **Endpoint:** `GET /refresh`
+   - **Description:** Refresh the access token.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/refresh` with the required authorization header.
+
+6. **Get User Info**
+   - **Endpoint:** `GET /me`
+   - **Description:** Get information about the currently authenticated user.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/me` with the required authorization header.
+
+7. **Social Authentication**
+   - **Endpoint:** `POST /social-auth`
+   - **Description:** Authenticate a user using a social platform.
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/social-auth` with the required parameters.
+
+8. **Update User Info**
+   - **Endpoint:** `PUT /update-user-info`
+   - **Description:** Update user information.
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/update-user-info` with the required parameters and authorization header.
+
+9. **Update User Password**
+   - **Endpoint:** `PUT /update-user-password`
+   - **Description:** Update user password.
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/update-user-password` with the required parameters and authorization header.
+
+10. **Update User Avatar**
+    - **Endpoint:** `PUT /update-user-avatar`
+    - **Description:** Update user profile picture.
+    - **Test in POSTMAN:** Send a PUT request to `http://test-url/update-user-avatar` with the required parameters and authorization header.
+
+11. **Get All Users (Admin)**
+    - **Endpoint:** `GET /get-users`
+    - **Description:** Get a list of all users (admin only).
+    - **Test in POSTMAN:** Send a GET request to `http://test-url/get-users` with the required authorization header.
+
+12. **Update User Role (Admin)**
+    - **Endpoint:** `PUT /update-user-role`
+    - **Description:** Update user role (admin only).
+    - **Test in POSTMAN:** Send a PUT request to `http://test-url/update-user-role` with the required parameters and authorization header.
+
+13. **Delete User (Admin)**
+    - **Endpoint:** `DELETE /delete-user`
+    - **Description:** Delete a user (admin only).
+    - **Test in POSTMAN:** Send a DELETE request to `http://test-url/delete-user` with the required parameters and authorization header.
+
+### Course Router
+
+1. **Create Course (Admin)**
+   - **Endpoint:** `POST /create-course`
+   - **Description:** Create a new course (admin only).
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/create-course` with the required parameters and authorization header.
+
+2. **Edit Course (Admin)**
+   - **Endpoint:** `PUT /edit-course/:id`
+   - **Description:** Edit an existing course (admin only).
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/edit-course/:id` with the required parameters and authorization header.
+
+3. **Get Single Course**
+   - **Endpoint:** `GET /get-course/:id`
+   - **Description:** Get details of a single course.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-course/:id` with the required parameters.
+
+4. **Get All Courses**
+   - **Endpoint:** `GET /get-courses/:id`
+   - **Description:** Get a list of all courses.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-courses/:id` with the required parameters.
+
+5. **Get Course Content**
+   - **Endpoint:** `GET /get-course-content/:id`
+   - **Description:** Get the content of a course for the authenticated user.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-course-content/:id` with the required parameters and authorization header.
+
+6. **Add Question**
+   - **Endpoint:** `PUT /add-question/:id`
+   - **Description:** Add a question to a course.
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/add-question/:id` with the required parameters and authorization header.
+
+7. **Add Answer**
+   - **Endpoint:** `PUT /add-answer/:id`
+   - **Description:** Add an answer to a question in a course.
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/add-answer/:id` with the required parameters and authorization header.
+
+8. **Add Review**
+   - **Endpoint:** `PUT /add-review/:id`
+   - **Description:** Add a review to a course.
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/add-review/:id` with the required parameters and authorization header.
+
+9. **Add Reply to Review (Admin)**
+   - **Endpoint:** `PUT /add-reply/:id`
+   - **Description:** Add a reply to a review (admin only).
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/add-reply/:id` with the required parameters and authorization header.
+
+10. **Get All Courses (Admin)**
+    - **Endpoint:** `GET /get-all-courses/:id`
+    - **Description:** Get a list of all courses for admin purposes.
+    - **Test in POSTMAN:** Send a GET request to `http://test-url/get-all-courses/:id` with the required authorization header.
+
+11. **Delete Course (Admin)**
+    - **Endpoint:** `DELETE /delete-course/:id`
+    - **Description:** Delete a course (admin only).
+    - **Test in POSTMAN:** Send a DELETE request to `http://test-url/delete-course/:id` with the required parameters and authorization header.
+
+### Order Router
+
+1. **Create Order**
+   - **Endpoint:** `POST /create-order`
+   - **Description:** Create a new order.
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/create-order` with the required parameters and authorization header.
+
+2. **Get All Orders (Admin)**
+   - **Endpoint:** `GET /get-orders`
+   - **Description:** Get a list of all orders (admin only).
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-orders` with the required authorization header.
+
+### Analytics Router
+
+1. **Get Users Analytics (Admin)**
+   - **Endpoint:** `GET /get-users-analytics`
+   - **Description:** Get analytics data for user-related activities (admin only).
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-users-analytics` with the required authorization header.
+
+2. **Get Courses Analytics (Admin)**
+   - **Endpoint:** `GET /get-courses-analytics`
+   - **Description:** Get analytics data for course-related activities (admin only).
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-courses-analytics` with the required authorization header.
+
+3. **Get Orders Analytics (Admin)**
+   - **Endpoint:** `GET /get-orders-analytics`
+   - **Description:** Get analytics data for order-related activities (admin only).
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-orders-analytics` with the required authorization header.
+
+### Notification Router
+
+1. **Get All Notifications (Admin)**
+   - **Endpoint:** `GET /get-all-notifications`
+   - **Description:** Get a list of all notifications (admin only).
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-all-notifications` with the required authorization header.
+
+2. **Update Notifications (Admin)**
+   - **Endpoint:** `GET /update-notifications/:id`
+   - **Description:** Update the status of a notification (admin only).
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/update-notifications/:id` with the required authorization header.
+
+### Layout Router
+
+1. **Create Layout (Admin)**
+   - **Endpoint:** `POST /create-layout`
+   - **Description:** Create a new layout (admin only).
+   - **Test in POSTMAN:** Send a POST request to `http://test-url/create-layout` with the required parameters and authorization header.
+
+2. **Edit Layout (Admin)**
+   - **Endpoint:** `PUT /edit-layout`
+   - **Description:** Edit an existing layout (admin only).
+   - **Test in POSTMAN:** Send a PUT request to `http://test-url/edit-layout` with the required parameters and authorization header.
+
+3. **Get Layout**
+   - **Endpoint:** `GET /get-layout`
+   - **Description:** Get layout details.
+   - **Test in POSTMAN:** Send a GET request to `http://test-url/get-layout` with the required parameters.
+
+> Authorization Header are of two types: `Authenticated-User` and `Authorized-Role`, meaning some routes can only be accessed by logged on users or admins.
+
+> *__THIS IS THE END OF DESCRIPTION FOR THE BACKEND SERVICE PROVIDED FOR THE LEARNING-MANAGEMENT-SYSTEM.__*
